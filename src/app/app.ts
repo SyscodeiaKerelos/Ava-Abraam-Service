@@ -1,10 +1,15 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Toast } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
+  standalone: true,
+  imports: [RouterOutlet, Toast],
+  template: `
+    <p-toast key="main-toast" position="top-right"></p-toast>
+    <router-outlet />
+  `,
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

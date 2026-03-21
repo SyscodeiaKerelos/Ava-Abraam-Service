@@ -6,11 +6,10 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from './icons';
-
-// Firebase
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { environment } from '../../environments/environment';
 
 export const provideCore = () => [
@@ -30,13 +29,13 @@ export const provideCore = () => [
   provideTranslateService({
     loader: provideTranslateHttpLoader({
       prefix: '/assets/i18n/',
-      suffix: '.json'
+      suffix: '.json',
     }),
-    defaultLanguage: 'ar'
+    fallbackLang: 'ar',
+    lang: 'ar',
   }),
-  // Firebase Providers (Standalone)
   provideFirebaseApp(() => initializeApp(environment.firebase)),
   provideAuth(() => getAuth()),
   provideFirestore(() => getFirestore()),
+  provideFunctions(() => getFunctions(getApp(), 'us-central1')),
 ];
-
