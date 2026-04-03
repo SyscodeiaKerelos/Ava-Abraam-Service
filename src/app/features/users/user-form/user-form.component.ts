@@ -16,11 +16,12 @@ import { User, UserRole } from '../../../shared/models/user.model';
 import { ZonesService } from '../../zones/services/zones.service';
 import { TranslateService } from '@ngx-translate/core';
 import { emailTakenValidator } from './email-taken.validator';
+import { InputText } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule, NgIcon],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule, NgIcon, InputText],
   providers: [
     provideIcons({
       faSolidUser,
@@ -44,9 +45,11 @@ import { emailTakenValidator } from './email-taken.validator';
         </label>
         <input
           type="text"
+          pInputText
+          fluid
           formControlName="displayName"
           [placeholder]="'translate_user-name' | translate"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          class="w-full"
         />
         @if (userForm.get('displayName')?.invalid && userForm.get('displayName')?.touched) {
           <p class="text-xs text-red-500">{{ 'translate_errors-required' | translate }}</p>
@@ -62,9 +65,11 @@ import { emailTakenValidator } from './email-taken.validator';
         </label>
         <input
           type="email"
+          pInputText
+          fluid
           formControlName="email"
           [placeholder]="'translate_auth-email' | translate"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          class="w-full"
         />
         @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
           @if (userForm.get('email')?.errors?.['required']) {
@@ -86,9 +91,11 @@ import { emailTakenValidator } from './email-taken.validator';
         </label>
         <input
           type="tel"
+          pInputText
+          fluid
           formControlName="phone"
           [placeholder]="'translate_user-phone' | translate"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          class="w-full"
         />
       </div>
 
@@ -101,7 +108,7 @@ import { emailTakenValidator } from './email-taken.validator';
         </label>
         <select
           formControlName="assignedZoneId"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          class="p-inputtext p-component w-full"
         >
           <option value="">{{ 'translate_select-zone' | translate }}</option>
           @for (zone of zones(); track zone.id) {
@@ -120,9 +127,11 @@ import { emailTakenValidator } from './email-taken.validator';
           </label>
           <input
             type="password"
+            pInputText
+            fluid
             formControlName="password"
             [placeholder]="'translate_auth-password' | translate"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            class="w-full"
           />
           @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
             <p class="text-xs text-red-500">{{ 'translate_errors-min-chars' | translate }}</p>
@@ -142,7 +151,6 @@ import { emailTakenValidator } from './email-taken.validator';
             <button
               type="button"
               (click)="selectRole(role.value)"
-              class="px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all flex flex-col items-center gap-1"
               [class]="getRoleButtonClass(role.value)"
             >
               <span class="text-base">{{ role.icon }}</span>
@@ -241,10 +249,12 @@ export class UserFormComponent {
 
   getRoleButtonClass(role: UserRole): string {
     const selected = this.userForm.get('role')?.value === role;
-    const base = selected
-      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
-      : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500';
-    return `${base} cursor-pointer`;
+    const base =
+      'cursor-pointer rounded-xl border-2 px-3 py-3 text-sm font-medium transition-colors duration-150 flex flex-col items-center gap-1';
+    if (selected) {
+      return `${base} border-primary bg-primary/10 text-primary dark:bg-primary/25 dark:text-primary-200`;
+    }
+    return `${base} border-surface-300 bg-surface-0 text-muted-color hover:border-surface-400 hover:bg-surface-50 dark:border-surface-600 dark:bg-surface-900 dark:hover:border-surface-500 dark:hover:bg-surface-800`;
   }
 
   getZoneName(zone: any): string {

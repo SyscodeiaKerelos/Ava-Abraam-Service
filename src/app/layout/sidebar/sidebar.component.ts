@@ -4,33 +4,25 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { visibleNavItems } from '../nav.config';
 import {
   faSolidHouse,
   faSolidUsers,
   faSolidBoxesPacking,
-  faSolidFileImport,
   faSolidGear,
   faSolidUser,
   faSolidArrowRightFromBracket,
 } from '@ng-icons/font-awesome/solid';
 
-interface MenuItem {
-  label: string;
-  link: string;
-  icon: string;
-  roles?: string[];
-}
-
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule, NgIcon],
   providers: [
     provideIcons({
       faSolidHouse,
       faSolidUsers,
       faSolidBoxesPacking,
-      faSolidFileImport,
       faSolidGear,
       faSolidUser,
       faSolidArrowRightFromBracket,
@@ -38,73 +30,73 @@ interface MenuItem {
   ],
   template: `
     <aside
-      class="fixed inset-y-0 z-50 transition-all duration-300 ease-in-out glass-sidebar hidden lg:block"
-      [class.right-0]="currentLang() === 'ar'"
-      [class.left-0]="currentLang() !== 'ar'"
-      [class.border-l]="currentLang() === 'ar'"
-      [class.border-r]="currentLang() !== 'ar'"
+      id="app-sidebar"
+      class="app-sidebar-shell fixed z-50 hidden overflow-hidden transition-[width] duration-200 ease-out motion-reduce:transition-none lg:flex lg:flex-col glass-sidebar rounded-3xl shadow-xl"
+      [class.top-3]="true"
+      [class.bottom-3]="true"
+      [class.right-3]="themeService.currentLang() === 'ar'"
+      [class.left-3]="themeService.currentLang() !== 'ar'"
       [class.w-24]="isCollapsed()"
       [class.w-72]="!isCollapsed()"
+      aria-label="Main navigation"
     >
-      <div class="h-full flex flex-col p-5">
-        <!-- Logo -->
-        <div class="flex items-center gap-4 mb-10 px-2 overflow-hidden whitespace-nowrap">
+      <div class="flex h-full min-h-0 flex-col p-4">
+        <div
+          class="mb-8 flex items-center gap-3 overflow-hidden px-1.5"
+        >
           <div
-            class="w-10 h-10 bg-primary rounded-xl flex-shrink-0 flex items-center justify-center shadow-lg shadow-primary/30"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-blue-600 text-white shadow-lg shadow-primary/35 ring-2 ring-white/25 dark:ring-white/10"
           >
-            <ng-icon name="faSolidUser" size="1.2rem" class="text-white" />
+            <ng-icon name="faSolidUser" size="1.25rem" aria-hidden="true" />
           </div>
           @if (!isCollapsed()) {
-            <h1
-              class="font-bold text-lg tracking-tight animate-in fade-in slide-in-from-right-2 duration-300"
-            >
-              {{ 'translate_app-name' | translate }}
-            </h1>
+            <div class="min-w-0 flex-1">
+              <h1 class="truncate text-base font-bold tracking-tight text-slate-900 dark:text-white">
+                {{ 'translate_app-name' | translate }}
+              </h1>
+            </div>
           }
         </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
+        <nav
+          class="app-sidebar-nav custom-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+          aria-label="Main"
+        >
           @for (item of visibleMenuItems(); track item.link) {
             <a
               [routerLink]="item.link"
               routerLinkActive="nav-item-active"
               [routerLinkActiveOptions]="{ exact: item.link === '/dashboard' }"
               class="nav-item"
-              [title]="item.label | translate"
+              [title]="item.labelKey | translate"
             >
-              <ng-icon [name]="item.icon" size="1.2rem" class="flex-shrink-0" />
+              <ng-icon [name]="item.icon" size="1.2rem" class="shrink-0" aria-hidden="true" />
               @if (!isCollapsed()) {
-                <span class="font-medium animate-in fade-in slide-in-from-right-2 duration-300">{{
-                  item.label | translate
-                }}</span>
+                <span class="truncate">{{ item.labelKey | translate }}</span>
               }
             </a>
           }
         </nav>
 
-        <!-- User & Logout -->
-        <div class="mt-auto pt-6 border-t border-slate-200/70 dark:border-white/10 overflow-hidden">
-          <div class="flex items-center justify-between gap-3 px-2">
-            <div class="flex items-center gap-3 overflow-hidden">
+        <div
+          class="mt-auto overflow-hidden border-t border-slate-200/80 pt-4 dark:border-white/10"
+        >
+          <div class="flex items-center justify-between gap-2 px-1">
+            <div class="flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden">
               <div
-                class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center border border-white/50 dark:border-slate-700 shadow-sm overflow-hidden"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/90 dark:border-slate-700 dark:bg-slate-800/90"
               >
-                <ng-icon name="faSolidUser" size="1.2rem" class="text-slate-400" />
+                <ng-icon name="faSolidUser" size="1.1rem" class="text-slate-500 dark:text-slate-400" aria-hidden="true" />
               </div>
               @if (!isCollapsed()) {
-                <div
-                  class="flex-1 animate-in fade-in slide-in-from-right-2 duration-300 overflow-hidden text-right ltr:text-left"
-                >
-                  <p class="text-xs font-bold leading-none truncate">
+                <div class="min-w-0 flex-1 text-end ltr:text-start">
+                  <p class="truncate text-xs font-bold text-slate-900 dark:text-slate-100">
                     {{
                       authService.currentUser()?.displayName ||
                         ('translate_common-user' | translate)
                     }}
                   </p>
-                  <p
-                    class="text-[9px] text-slate-500 mt-1 uppercase tracking-tighter font-semibold"
-                  >
+                  <p class="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     {{ getRoleLabel() }}
                   </p>
                 </div>
@@ -112,11 +104,12 @@ interface MenuItem {
             </div>
 
             <button
+              type="button"
               (click)="logout.emit()"
-              class="p-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+              class="shrink-0 rounded-xl p-2.5 text-red-500 transition-colors hover:bg-red-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:hover:bg-red-500/15"
               [title]="'translate_common-logout' | translate"
             >
-              <ng-icon name="faSolidArrowRightFromBracket" size="1.1rem" />
+              <ng-icon name="faSolidArrowRightFromBracket" size="1.1rem" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -127,34 +120,13 @@ interface MenuItem {
 })
 export class SidebarComponent {
   private translate = inject(TranslateService);
-
-  isCollapsed = input.required<boolean>();
-  currentLang = input.required<'ar' | 'en'>();
-  logout = output<void>();
-
+  protected themeService = inject(ThemeService);
   protected authService = inject(AuthService);
 
-  private menuItems: MenuItem[] = [
-    { label: 'translate_nav-dashboard', link: '/dashboard', icon: 'faSolidHouse' },
-    { label: 'translate_nav-zones', link: '/zones', icon: 'faSolidBoxesPacking' },
-    { label: 'translate_nav-users', link: '/users', icon: 'faSolidUsers', roles: ['super_admin'] },
-    {
-      label: 'translate_nav-settings',
-      link: '/settings/tags',
-      icon: 'faSolidGear',
-      roles: ['super_admin', 'admin'],
-    },
-  ];
+  isCollapsed = input.required<boolean>();
+  logout = output<void>();
 
-  visibleMenuItems = computed(() => {
-    const userRole = this.authService.currentUserRole();
-    return this.menuItems.filter((item) => {
-      if (!item.roles || item.roles.length === 0) {
-        return true;
-      }
-      return item.roles.includes(userRole || '');
-    });
-  });
+  visibleMenuItems = computed(() => visibleNavItems(this.authService.currentUserRole()));
 
   getRoleLabel(): string {
     const role = this.authService.currentUserRole();

@@ -1,14 +1,37 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>خدمة الأنبا ابرام | Ava Abraam Service</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body class="dark">
-  <app-root></app-root>
-</body>
-</html>
+  <head>
+    <meta charset="utf-8" />
+    <title>خدمة الأنبا ابرام | Ava Abraam Service</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!--
+      FOUC + Tailwind dark: sync with ThemeService (keys app-theme, app-lang).
+      Do NOT put class="dark" on body — Tailwind v4 dark variant would stay stuck on.
+    -->
+    <script>
+      (function () {
+        try {
+          var tk = 'app-theme';
+          var lk = 'app-lang';
+          var savedTheme = localStorage.getItem(tk);
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+          var root = document.documentElement;
+          root.classList.toggle('dark', dark);
+          root.setAttribute('data-app-theme', dark ? 'dark' : 'light');
 
+          var lang = localStorage.getItem(lk) || 'ar';
+          root.setAttribute('lang', lang);
+          root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

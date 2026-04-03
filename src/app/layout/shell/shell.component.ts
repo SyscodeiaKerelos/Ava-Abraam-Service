@@ -2,19 +2,21 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
-  effect,
-  inject,
-  Renderer2,
   computed,
+  inject,
   OnInit,
+  effect,
 } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { visibleNavItems } from '../nav.config';
 import {
   faSolidUser,
   faSolidXmark,
@@ -26,19 +28,8 @@ import {
   faSolidGear,
 } from '@ng-icons/font-awesome/solid';
 
-interface MenuItem {
-  label: string;
-  link: string;
-  icon: string;
-  roles?: string[];
-}
-
-const THEME_KEY = 'Anafora-Farm-Theme';
-const LANG_KEY = 'Anafora-Farm-Lang';
-
 @Component({
   selector: 'app-shell',
-  standalone: true,
   imports: [
     CommonModule,
     RouterOutlet,
@@ -46,6 +37,7 @@ const LANG_KEY = 'Anafora-Farm-Lang';
     TopbarComponent,
     NgIcon,
     RouterLink,
+    RouterLinkActive,
     TranslateModule,
   ],
   providers: [
@@ -62,108 +54,121 @@ const LANG_KEY = 'Anafora-Farm-Lang';
   ],
   template: `
     <div
-      [class.dark]="isDarkMode()"
-      class="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans transition-colors duration-300 overflow-hidden"
-      [dir]="currentLang() === 'ar' ? 'rtl' : 'ltr'"
+      class="flex min-h-screen overflow-hidden bg-surface-0 font-sans text-slate-900 antialiased transition-colors duration-150 dark:bg-surface-900 dark:text-slate-50"
+      [dir]="themeService.currentLang() === 'ar' ? 'rtl' : 'ltr'"
     >
-      <!-- Desktop Sidebar -->
-      <app-sidebar
-        [isCollapsed]="isCollapsed()"
-        [currentLang]="currentLang()"
-        (logout)="onLogout()"
-      />
+      <app-sidebar [isCollapsed]="isCollapsed()" (logout)="onLogout()" />
 
-      <!-- Main Content -->
       <main
-        class="flex-1 min-h-screen flex flex-col relative transition-all duration-300 ease-in-out overflow-y-auto"
-        [class.lg:pr-24]="currentLang() === 'ar' && isCollapsed()"
-        [class.lg:pr-72]="currentLang() === 'ar' && !isCollapsed()"
-        [class.lg:pl-24]="currentLang() !== 'ar' && isCollapsed()"
-        [class.lg:pl-72]="currentLang() !== 'ar' && !isCollapsed()"
+        class="app-page-gradient relative flex min-h-screen flex-1 flex-col overflow-y-auto transition-[padding] duration-200 ease-out motion-reduce:transition-none"
+        [class.lg:pr-28]="themeService.currentLang() === 'ar' && isCollapsed()"
+        [class.lg:pr-80]="themeService.currentLang() === 'ar' && !isCollapsed()"
+        [class.lg:pl-28]="themeService.currentLang() !== 'ar' && isCollapsed()"
+        [class.lg:pl-80]="themeService.currentLang() !== 'ar' && !isCollapsed()"
       >
         <app-topbar
           [isCollapsed]="isCollapsed()"
           [isSidebarOpen]="isSidebarOpen()"
-          [isDarkMode]="isDarkMode()"
-          [currentLang]="currentLang()"
           (toggleCollapse)="isCollapsed.set(!isCollapsed())"
           (toggleMobileMenu)="isSidebarOpen.set(!isSidebarOpen())"
-          (toggleLanguage)="toggleLanguage()"
-          (toggleTheme)="toggleTheme()"
         />
 
-        <!-- Page Content -->
-        <div class="p-6 lg:p-10 flex-1 relative z-10">
+        <div class="relative z-10 flex-1 p-4 sm:p-6 lg:p-10">
           <router-outlet />
         </div>
 
-        <!-- Decorators -->
         <div
-          class="absolute top-40 left-40 w-96 h-96 bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-0"
+          class="pointer-events-none absolute left-[10%] top-32 z-0 h-96 w-96 rounded-full bg-primary/10 blur-[120px] dark:bg-primary/20"
         ></div>
         <div
-          class="absolute bottom-40 right-40 w-80 h-80 bg-blue-400/5 blur-[100px] rounded-full pointer-events-none -z-0"
+          class="pointer-events-none absolute bottom-24 right-[15%] z-0 h-80 w-80 rounded-full bg-indigo-400/10 blur-[100px] dark:bg-indigo-400/15"
         ></div>
       </main>
 
-      <!-- Mobile Sidebar Overlay -->
       @if (isSidebarOpen()) {
         <div
-          class="fixed inset-0 z-50 lg:hidden bg-slate-950/20 backdrop-blur-sm"
+          class="fixed inset-0 z-50 flex bg-slate-950/40 backdrop-blur-sm lg:hidden"
+          role="presentation"
           (click)="isSidebarOpen.set(false)"
         >
           <aside
-            class="absolute top-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl animate-in duration-300 transition-transform"
-            [class.right-0]="currentLang() === 'ar'"
-            [class.left-0]="currentLang() !== 'ar'"
+            class="app-mobile-drawer glass-sidebar absolute bottom-3 top-3 w-[min(100%-1.5rem,18rem)] overflow-hidden rounded-3xl shadow-2xl"
+            [class.right-3]="themeService.currentLang() === 'ar'"
+            [class.left-3]="themeService.currentLang() !== 'ar'"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
             (click)="$event.stopPropagation()"
           >
-            <div class="h-full flex flex-col p-6">
-              <!-- Mobile Logo -->
-              <div class="flex items-center gap-4 mb-10 px-2">
-                <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                  <ng-icon name="faSolidUser" size="1.2rem" class="text-white" />
+            <div class="flex h-full flex-col p-5">
+              <div class="mb-8 flex items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-3">
+                  <div
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-blue-600 text-white shadow-lg shadow-primary/35"
+                  >
+                    <ng-icon name="faSolidUser" size="1.2rem" aria-hidden="true" />
+                  </div>
+                  <h1 class="truncate text-base font-bold tracking-tight">
+                    {{ 'translate_app-name' | translate }}
+                  </h1>
                 </div>
-                <h1 class="font-bold text-lg tracking-tight">
-                  {{ 'translate_app-name' | translate }}
-                </h1>
+                <button
+                  type="button"
+                  class="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                  (click)="isSidebarOpen.set(false)"
+                  aria-label="Close menu"
+                >
+                  <ng-icon name="faSolidXmark" size="1.15rem" aria-hidden="true" />
+                </button>
               </div>
 
-              <!-- Mobile Nav -->
-              <nav class="flex-1 space-y-2">
+              <nav
+                class="app-sidebar-nav custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto"
+                aria-label="Main"
+              >
                 @for (item of visibleMenuItems(); track item.link) {
                   <a
                     [routerLink]="item.link"
+                    routerLinkActive="nav-item-active"
+                    [routerLinkActiveOptions]="{ exact: item.link === '/dashboard' }"
                     (click)="isSidebarOpen.set(false)"
-                    class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 dark:text-slate-400 font-medium"
+                    class="nav-item"
                   >
-                    <ng-icon [name]="item.icon" size="1.2rem" />
-                    <span>{{ item.label | translate }}</span>
+                    <ng-icon [name]="item.icon" size="1.2rem" aria-hidden="true" />
+                    <span class="truncate">{{ item.labelKey | translate }}</span>
                   </a>
                 }
               </nav>
 
-              <!-- Mobile Footer -->
               <div
-                class="mt-auto pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between"
+                class="mt-auto border-t border-slate-200/80 pt-5 dark:border-white/10"
               >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <div
+                      class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
+                    >
+                      <ng-icon name="faSolidUser" size="1rem" class="text-slate-400" aria-hidden="true" />
+                    </div>
+                    <div class="min-w-0 text-end ltr:text-start">
+                      <span class="block truncate text-xs font-bold">{{
+                        authService.currentUser()?.displayName ||
+                          ('translate_common-user' | translate)
+                      }}</span>
+                      <span class="block truncate text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">{{
+                        getRoleLabel()
+                      }}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="onLogout()"
+                    class="rounded-xl p-2 text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/15"
+                    [title]="'translate_common-logout' | translate"
                   >
-                    <ng-icon name="faSolidUser" size="1rem" class="text-slate-400" />
-                  </div>
-                  <div class="text-right">
-                    <span class="text-xs font-bold block">{{
-                      authService.currentUser()?.displayName ||
-                        ('translate_common-user' | translate)
-                    }}</span>
-                    <span class="text-[10px] text-slate-500 uppercase">{{ getRoleLabel() }}</span>
-                  </div>
+                    <ng-icon name="faSolidArrowRightFromBracket" size="1.1rem" aria-hidden="true" />
+                  </button>
                 </div>
-                <button (click)="onLogout()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                  <ng-icon name="faSolidArrowRightFromBracket" size="1.1rem" />
-                </button>
               </div>
             </div>
           </aside>
@@ -175,84 +180,32 @@ const LANG_KEY = 'Anafora-Farm-Lang';
 })
 export class ShellComponent implements OnInit {
   private translate = inject(TranslateService);
-  private renderer = inject(Renderer2);
-  private document = inject(DOCUMENT);
   protected authService = inject(AuthService);
+  protected themeService = inject(ThemeService);
 
   isSidebarOpen = signal(false);
   isCollapsed = signal(false);
-  isDarkMode = signal(false);
-  currentLang = signal<'ar' | 'en'>('ar');
+
+  visibleMenuItems = computed(() => visibleNavItems(this.authService.currentUserRole()));
+
+  private lastAppliedLang: 'ar' | 'en' | null = null;
 
   constructor() {
     effect(() => {
-      const mode = this.isDarkMode();
-      if (mode) {
-        this.renderer.addClass(this.document.body, 'dark');
-        localStorage.setItem(THEME_KEY, 'dark');
-      } else {
-        this.renderer.removeClass(this.document.body, 'dark');
-        localStorage.setItem(THEME_KEY, 'light');
+      const lang = this.themeService.currentLang();
+      if (this.lastAppliedLang === lang) {
+        return;
       }
-    });
-
-    effect(() => {
-      const lang = this.currentLang();
-      const dir = lang === 'ar' ? 'rtl' : 'ltr';
-      this.renderer.setAttribute(this.document.documentElement, 'lang', lang);
-      this.renderer.setAttribute(this.document.documentElement, 'dir', dir);
-      localStorage.setItem(LANG_KEY, lang);
-      this.translate.use(lang);
+      this.lastAppliedLang = lang;
+      void firstValueFrom(this.translate.use(lang));
     });
   }
-
-  private menuItems: MenuItem[] = [
-    { label: 'translate_nav-dashboard', link: '/dashboard', icon: 'faSolidHouse' },
-    { label: 'translate_nav-zones', link: '/zones', icon: 'faSolidBoxesPacking' },
-    { label: 'translate_nav-users', link: '/users', icon: 'faSolidUsers', roles: ['super_admin'] },
-    {
-      label: 'translate_nav-settings',
-      link: '/settings/tags',
-      icon: 'faSolidGear',
-      roles: ['super_admin', 'admin'],
-    },
-  ];
-
-  visibleMenuItems = computed(() => {
-    const userRole = this.authService.currentUserRole();
-    return this.menuItems.filter((item) => {
-      if (!item.roles || item.roles.length === 0) {
-        return true;
-      }
-      return item.roles.includes(userRole || '');
-    });
-  });
 
   ngOnInit(): void {
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    const savedLang = localStorage.getItem(LANG_KEY) as 'ar' | 'en' | null;
-
-    if (
-      savedTheme === 'dark' ||
-      (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      this.isDarkMode.set(true);
-    }
-
-    if (savedLang) {
-      this.currentLang.set(savedLang);
-    }
-
     this.translate.setDefaultLang('ar');
-    this.translate.use(this.currentLang());
-  }
-
-  toggleTheme(): void {
-    this.isDarkMode.update((v) => !v);
-  }
-
-  toggleLanguage(): void {
-    this.currentLang.update((l) => (l === 'ar' ? 'en' : 'ar'));
+    const current = this.themeService.currentLang();
+    const other = current === 'ar' ? 'en' : 'ar';
+    void firstValueFrom(this.translate.reloadLang(other)).catch(() => undefined);
   }
 
   onLogout(): void {

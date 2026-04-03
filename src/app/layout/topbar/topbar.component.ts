@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 import {
   faSolidBars,
   faSolidXmark,
@@ -14,7 +15,6 @@ import {
 
 @Component({
   selector: 'app-topbar',
-  standalone: true,
   imports: [CommonModule, TranslateModule, NgIcon],
   providers: [
     provideIcons({
@@ -28,56 +28,75 @@ import {
   ],
   template: `
     <header
-      class="sticky top-0 z-40 h-20 flex items-center justify-between px-6 lg:px-10 bg-[#f8fafc]/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-white/5"
+      class="sticky top-0 z-40 flex h-18 shrink-0 items-center justify-between border-b border-slate-200/70 bg-white/85 px-4 backdrop-blur-md transition-colors duration-150 dark:border-white/10 dark:bg-slate-950/80 sm:px-6 lg:px-10"
     >
-      <div class="flex items-center gap-4">
-        <!-- Desktop Collapse Toggle -->
+      <div class="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
         <button
+          type="button"
           (click)="toggleCollapse.emit()"
-          class="hidden lg:flex p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          class="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/90 text-slate-700 shadow-sm transition hover:border-primary/30 hover:bg-slate-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-slate-800 lg:flex"
+          [attr.aria-expanded]="!isCollapsed()"
+          aria-controls="app-sidebar"
         >
           <ng-icon
             [name]="isCollapsed() ? 'faSolidBars' : 'faSolidIndent'"
             size="1.1rem"
-            [class.rotate-180]="currentLang() === 'en'"
+            aria-hidden="true"
+            [class.rotate-180]="themeService.currentLang() === 'en'"
           />
         </button>
 
-        <!-- Mobile Menu Toggle -->
         <button
+          type="button"
           (click)="toggleMobileMenu.emit()"
-          class="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-white/10"
+          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/90 text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
+          [attr.aria-expanded]="isSidebarOpen()"
+          aria-label="Open menu"
         >
-          <ng-icon [name]="isSidebarOpen() ? 'faSolidXmark' : 'faSolidBars'" size="1.2rem" />
+          <ng-icon [name]="isSidebarOpen() ? 'faSolidXmark' : 'faSolidBars'" size="1.2rem" aria-hidden="true" />
         </button>
 
         <h1
-          class="font-bold text-sm lg:text-base tracking-tight text-slate-800 dark:text-slate-200"
+          class="min-w-0 truncate text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-base"
         >
-          {{ 'translate_common-welcome' | translate }}،
-          {{ authService.currentUser()?.displayName || ('translate_common-user' | translate) }}
+          <span class="text-muted-color font-medium">{{ 'translate_common-welcome' | translate }}</span>
+          <span class="mx-1 text-slate-400 dark:text-slate-500">،</span>
+          <span>{{
+            authService.currentUser()?.displayName || ('translate_common-user' | translate)
+          }}</span>
         </h1>
       </div>
 
-      <!-- Toggles -->
-      <div class="flex items-center gap-3">
+      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
         <div
-          class="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-2xl backdrop-blur-sm shadow-inner"
+          class="flex items-center gap-0.5 rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1 shadow-inner dark:border-white/10 dark:bg-slate-800/60"
         >
           <button
-            (click)="toggleLanguage.emit()"
-            class="p-2 px-3 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-slate-700 flex items-center gap-2"
+            type="button"
+            (click)="themeService.toggleLanguage()"
+            class="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 transition hover:bg-white hover:shadow-sm dark:text-slate-200 dark:hover:bg-slate-700/80"
           >
-            <ng-icon name="faSolidGlobe" size="0.9rem" />
-            <span class="text-[10px] font-bold uppercase">{{
-              currentLang() === 'ar' ? 'EN' : 'AR'
+            <ng-icon name="faSolidGlobe" size="0.9rem" aria-hidden="true" />
+            <span class="tabular-nums">{{
+              themeService.currentLang() === 'ar' ? 'EN' : 'AR'
             }}</span>
           </button>
           <button
-            (click)="toggleTheme.emit()"
-            class="p-2 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-slate-700"
+            type="button"
+            (click)="themeService.toggleTheme()"
+            class="flex h-10 w-10 items-center justify-center rounded-xl text-amber-600 transition hover:bg-white hover:shadow-sm dark:text-amber-400 dark:hover:bg-slate-700/80"
+            [attr.aria-pressed]="themeService.isDarkMode()"
+            [attr.aria-label]="
+              themeService.isDarkMode()
+                ? 'Switch to light mode'
+                : 'Switch to dark mode'
+            "
           >
-            <ng-icon [name]="isDarkMode() ? 'faSolidSun' : 'faSolidMoon'" size="0.9rem" />
+            <ng-icon
+              [name]="themeService.isDarkMode() ? 'faSolidSun' : 'faSolidMoon'"
+              size="1rem"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
@@ -87,14 +106,11 @@ import {
 })
 export class TopbarComponent {
   protected authService = inject(AuthService);
+  protected themeService = inject(ThemeService);
 
   isCollapsed = input.required<boolean>();
   isSidebarOpen = input.required<boolean>();
-  isDarkMode = input.required<boolean>();
-  currentLang = input.required<'ar' | 'en'>();
 
   toggleCollapse = output<void>();
   toggleMobileMenu = output<void>();
-  toggleLanguage = output<void>();
-  toggleTheme = output<void>();
 }
