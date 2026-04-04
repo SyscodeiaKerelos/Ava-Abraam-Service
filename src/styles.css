@@ -144,6 +144,28 @@ html.dark .p-dialog-mask.p-overlay-mask {
   width: 100%;
 }
 
+/* Dark mode: typed text visible in Prime inputs (Tailwind focus:bg-white etc. must pair with dark:focus + text color) */
+html.dark input.p-inputtext,
+html.dark .p-password-input,
+html.dark .p-password .p-inputtext {
+  color: var(--p-inputtext-color, var(--p-text-muted-color, rgb(241 245 249)));
+}
+
+html.dark input.p-inputtext::placeholder,
+html.dark .p-password-input::placeholder {
+  color: var(--p-inputtext-placeholder-color, rgb(148 163 184));
+}
+
+html.dark input.p-inputtext:-webkit-autofill,
+html.dark input.p-inputtext:-webkit-autofill:focus,
+html.dark .p-password-input:-webkit-autofill,
+html.dark .p-password-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: rgb(241 245 249);
+  caret-color: rgb(241 245 249);
+  box-shadow: 0 0 0 1000px rgb(30 41 59) inset;
+  transition: background-color 9999s ease-out;
+}
+
 /* Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

@@ -189,7 +189,7 @@ export class AuthService {
   private navigateBasedOnRole(role: UserRole): void {
     switch (role) {
       case 'super_admin':
-        this.router.navigate(['/users']);
+        this.router.navigate(['/dashboard']);
         break;
       case 'admin':
         this.router.navigate(['/dashboard']);

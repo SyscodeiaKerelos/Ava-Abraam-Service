@@ -52,7 +52,7 @@ import { ToastService } from '../../../shared/services/toast.service';
               pInputText
               type="email"
               formControlName="email"
-              class="w-full pl-10 rounded-xl border-slate-200 bg-white/50 focus:bg-white dark:border-white/10 dark:bg-slate-800/50"
+              class="w-full pl-10 rounded-xl border border-slate-200 bg-white/80 text-slate-900 placeholder:text-slate-500 focus:border-primary focus:bg-white focus:text-slate-900 dark:border-white/15 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-primary-400 dark:focus:bg-slate-800 dark:focus:text-slate-100"
               [placeholder]="'translate_auth-email' | translate"
             />
           </div>
@@ -67,7 +67,7 @@ import { ToastService } from '../../../shared/services/toast.service';
             [toggleMask]="true"
             [feedback]="false"
             styleClass="w-full"
-            inputStyleClass="w-full rounded-xl border-slate-200 bg-white/50 focus:bg-white dark:border-white/10 dark:bg-slate-800/50"
+            inputStyleClass="w-full rounded-xl border border-slate-200 bg-white/80 text-slate-900 placeholder:text-slate-500 focus:border-primary focus:bg-white focus:text-slate-900 dark:border-white/15 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-primary-400 dark:focus:bg-slate-800 dark:focus:text-slate-100"
             [placeholder]="'translate_auth-password' | translate"
           ></p-password>
         </div>
