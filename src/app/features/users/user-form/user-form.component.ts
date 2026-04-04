@@ -40,7 +40,6 @@ import { InputText } from 'primeng/inputtext';
       faSolidShield,
       faSolidMapPin,
     }),
-    ZonesService,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

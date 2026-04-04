@@ -1,29 +1,20 @@
-import { Component, ChangeDetectionStrategy, input, output, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { visibleNavItems } from '../nav.config';
+import { NavEntriesComponent } from '../nav-entries/nav-entries.component';
 import {
-  faSolidHouse,
-  faSolidUsers,
-  faSolidBoxesPacking,
-  faSolidGear,
   faSolidUser,
   faSolidArrowRightFromBracket,
 } from '@ng-icons/font-awesome/solid';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule, NgIcon],
+  imports: [CommonModule, TranslateModule, NgIcon, NavEntriesComponent],
   providers: [
     provideIcons({
-      faSolidHouse,
-      faSolidUsers,
-      faSolidBoxesPacking,
-      faSolidGear,
       faSolidUser,
       faSolidArrowRightFromBracket,
     }),
@@ -62,20 +53,7 @@ import {
           class="app-sidebar-nav custom-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
           aria-label="Main"
         >
-          @for (item of visibleMenuItems(); track item.link) {
-            <a
-              [routerLink]="item.link"
-              routerLinkActive="nav-item-active"
-              [routerLinkActiveOptions]="{ exact: item.link === '/dashboard' }"
-              class="nav-item"
-              [title]="item.labelKey | translate"
-            >
-              <ng-icon [name]="item.icon" size="1.2rem" class="shrink-0" aria-hidden="true" />
-              @if (!isCollapsed()) {
-                <span class="truncate">{{ item.labelKey | translate }}</span>
-              }
-            </a>
-          }
+          <app-nav-entries [isCollapsed]="isCollapsed()" />
         </nav>
 
         <div
@@ -125,8 +103,6 @@ export class SidebarComponent {
 
   isCollapsed = input.required<boolean>();
   logout = output<void>();
-
-  visibleMenuItems = computed(() => visibleNavItems(this.authService.currentUserRole()));
 
   getRoleLabel(): string {
     const role = this.authService.currentUserRole();

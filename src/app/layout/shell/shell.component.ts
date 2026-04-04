@@ -2,30 +2,25 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
-  computed,
   inject,
   OnInit,
   effect,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
+import { NavEntriesComponent } from '../nav-entries/nav-entries.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { visibleNavItems } from '../nav.config';
 import {
   faSolidUser,
   faSolidXmark,
   faSolidBars,
   faSolidArrowRightFromBracket,
-  faSolidHouse,
-  faSolidUsers,
-  faSolidBoxesPacking,
-  faSolidGear,
 } from '@ng-icons/font-awesome/solid';
 
 @Component({
@@ -35,9 +30,8 @@ import {
     RouterOutlet,
     SidebarComponent,
     TopbarComponent,
+    NavEntriesComponent,
     NgIcon,
-    RouterLink,
-    RouterLinkActive,
     TranslateModule,
   ],
   providers: [
@@ -46,10 +40,6 @@ import {
       faSolidXmark,
       faSolidBars,
       faSolidArrowRightFromBracket,
-      faSolidHouse,
-      faSolidUsers,
-      faSolidBoxesPacking,
-      faSolidGear,
     }),
   ],
   template: `
@@ -126,18 +116,10 @@ import {
                 class="app-sidebar-nav custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto"
                 aria-label="Main"
               >
-                @for (item of visibleMenuItems(); track item.link) {
-                  <a
-                    [routerLink]="item.link"
-                    routerLinkActive="nav-item-active"
-                    [routerLinkActiveOptions]="{ exact: item.link === '/dashboard' }"
-                    (click)="isSidebarOpen.set(false)"
-                    class="nav-item"
-                  >
-                    <ng-icon [name]="item.icon" size="1.2rem" aria-hidden="true" />
-                    <span class="truncate">{{ item.labelKey | translate }}</span>
-                  </a>
-                }
+                <app-nav-entries
+                  [closeDrawerOnNavigate]="true"
+                  (navigated)="isSidebarOpen.set(false)"
+                />
               </nav>
 
               <div
@@ -185,8 +167,6 @@ export class ShellComponent implements OnInit {
 
   isSidebarOpen = signal(false);
   isCollapsed = signal(false);
-
-  visibleMenuItems = computed(() => visibleNavItems(this.authService.currentUserRole()));
 
   private lastAppliedLang: 'ar' | 'en' | null = null;
 

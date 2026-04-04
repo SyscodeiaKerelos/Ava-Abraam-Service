@@ -37,6 +37,10 @@
   @apply before:inset-s-0 rtl:before:start-auto rtl:before:inset-e-0;
 }
 
+@utility nav-item-child {
+  @apply ms-2 border-s-2 border-slate-200/80 py-2.5 ps-3 text-[13px] dark:border-white/10;
+}
+
 :root {
   --p-primary-color: #3b82f6;
 }
@@ -63,6 +67,13 @@ body {
   font-family: var(--p-font-family);
   direction: rtl;
   @apply bg-surface-0 text-slate-900 antialiased dark:bg-surface-900 dark:text-slate-100;
+}
+
+/* PrimeNG: <p-button> host should match the inner <button> box so focus rings and hit targets align */
+p-button {
+  display: inline-flex;
+  max-width: 100%;
+  vertical-align: middle;
 }
 
 /* PrimeNG RTL */

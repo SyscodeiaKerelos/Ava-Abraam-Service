@@ -39,7 +39,7 @@ export const DEFAULT_PERMISSIONS: Record<string, UserPermissions> = {
     canEditUsers: false,
     canDeleteUsers: false,
     canViewReports: true,
-    canExportData: false,
+    canExportData: true,
     canManageSettings: false,
   },
   viewer: {
