@@ -34,6 +34,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'users/:uid',
+        loadComponent: () =>
+          import('./features/users/user-detail/user-detail.component').then(
+            (m) => m.UserDetailComponent,
+          ),
+        canActivate: [SuperAdminGuard],
+      },
+      {
         path: 'users',
         loadComponent: () =>
           import('./features/users/users-list/users-list.component').then(

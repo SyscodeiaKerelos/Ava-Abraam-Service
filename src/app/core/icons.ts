@@ -1,4 +1,5 @@
 import {
+  faSolidArrowLeft,
   faSolidArrowRight,
   faSolidArrowRightFromBracket,
   faSolidBars,
@@ -9,6 +10,7 @@ import {
   faSolidCircle,
   faSolidClock,
   faSolidEllipsisVertical,
+  faSolidEye,
   faSolidFeather,
   faSolidGlobe,
   faSolidHouse,
@@ -35,6 +37,7 @@ import {
  * App-wide icon set for ng-icons.
  */
 export const APP_ICONS = {
+  faSolidArrowLeft,
   faSolidArrowRight,
   faSolidArrowRightFromBracket,
   faSolidBars,
@@ -45,6 +48,7 @@ export const APP_ICONS = {
   faSolidCircle,
   faSolidClock,
   faSolidEllipsisVertical,
+  faSolidEye,
   faSolidFeather,
   faSolidGlobe,
   faSolidHouse,

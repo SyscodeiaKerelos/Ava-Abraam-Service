@@ -94,6 +94,19 @@ body {
   background: var(--p-content-hover-background);
 }
 
+/* Users list: actions column — clearer hit target above row hover layer */
+.app-data-table.p-datatable .p-datatable-tbody > tr > td.app-users-actions-cell,
+.app-data-table.p-datatable .p-datatable-thead > tr > th.app-users-actions-col {
+  position: relative;
+  z-index: 1;
+  vertical-align: middle;
+}
+
+.app-data-table.p-datatable .p-datatable-tbody > tr > td.app-users-actions-cell .p-button {
+  position: relative;
+  z-index: 2;
+}
+
 /* Dialog overlay — rgba so light/dark both read clearly */
 .p-dialog-mask.p-component-overlay,
 .p-dialog-mask.p-overlay-mask {

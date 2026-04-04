@@ -1,14 +1,16 @@
-import { inject } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { Observable, from, map, catchError, of, timer, switchMap, first } from 'rxjs';
 import { UsersService } from '../services/users.service';
 
 /**
  * Async validator to check if an email is already registered in the system.
+ * Pass `UsersService` from an injection context (e.g. component field initializer);
+ * do not call `inject()` inside the factory from an `effect()` or other non-DI context.
  */
-export function emailTakenValidator(originalEmail?: string): AsyncValidatorFn {
-  const usersService = inject(UsersService);
-
+export function emailTakenValidator(
+  usersService: UsersService,
+  originalEmail?: string,
+): AsyncValidatorFn {
   return (control: AbstractControl): Observable<ValidationErrors | null> => {
     const email = control.value?.toLowerCase();
 

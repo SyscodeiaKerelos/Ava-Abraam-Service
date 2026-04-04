@@ -1,14 +1,23 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TranslateModule } from '@ngx-translate/core';
+import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 import { UsersService } from '../services/users.service';
+import { NgIcon } from '@ng-icons/core';
 import { UserFormComponent } from '../user-form/user-form.component';
 import { User, UserRole } from '../../../shared/models/user.model';
-import { NgIcon } from '@ng-icons/core';
 
 @Component({
   selector: 'app-users-list',
@@ -18,8 +27,9 @@ import { NgIcon } from '@ng-icons/core';
     TableModule,
     ButtonModule,
     DialogModule,
-    UserFormComponent,
+    Menu,
     NgIcon,
+    UserFormComponent,
   ],
   template: `
     <div class="glass-card p-5 sm:p-8">
@@ -35,9 +45,12 @@ import { NgIcon } from '@ng-icons/core';
         <p-button
           (click)="onAddNewUser()"
           [label]="'translate_user-add' | translate"
-          icon="pi pi-plus"
           styleClass="shrink-0"
-        />
+        >
+          <ng-template pTemplate="icon" let-iconClass="class">
+            <ng-icon name="faSolidPlus" [class]="(iconClass || '') + ' shrink-0'" size="1rem" aria-hidden="true" />
+          </ng-template>
+        </p-button>
       </div>
 
       <div class="overflow-x-auto rounded-2xl">
@@ -66,7 +79,9 @@ import { NgIcon } from '@ng-icons/core';
               <th scope="col" class="text-muted-color font-semibold">
                 {{ 'translate_user-status' | translate }}
               </th>
-              <th scope="col" class="w-28"><span class="sr-only">Actions</span></th>
+              <th scope="col" class="app-users-actions-col w-24 min-w-14 text-center">
+                <span class="sr-only">{{ 'translate_user-actions' | translate }}</span>
+              </th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-user>
@@ -82,15 +97,25 @@ import { NgIcon } from '@ng-icons/core';
                   user.isActive ? 'Active' : 'Inactive'
                 }}</span>
               </td>
-              <td>
-                <button
+              <td class="app-users-actions-cell text-center">
+                <p-button
                   type="button"
-                  (click)="onEditUser(user)"
-                  class="inline-flex rounded-xl p-2.5 text-muted-color transition hover:bg-emphasis focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  [attr.aria-label]="'translate_user-edit' | translate"
+                  (click)="openRowMenu($event, user)"
+                  [outlined]="true"
+                  severity="secondary"
+                  styleClass="shrink-0 !min-h-10 !min-w-10 !border-surface-400 !text-color hover:!bg-emphasis dark:!border-surface-500"
+                  [attr.aria-label]="'translate_user-actions' | translate"
+                  [attr.aria-haspopup]="'menu'"
                 >
-                  <ng-icon name="faSolidPen" size="0.9rem" aria-hidden="true" />
-                </button>
+                  <ng-template pTemplate="icon" let-iconClass="class">
+                    <ng-icon
+                      name="faSolidEllipsisVertical"
+                      [class]="(iconClass || '') + ' shrink-0'"
+                      size="1.1rem"
+                      aria-hidden="true"
+                    />
+                  </ng-template>
+                </p-button>
               </td>
             </tr>
           </ng-template>
@@ -104,6 +129,29 @@ import { NgIcon } from '@ng-icons/core';
         </p-table>
       </div>
     </div>
+
+    <p-menu
+      #rowMenu
+      [model]="rowMenuModel()"
+      [popup]="true"
+      appendTo="body"
+      [baseZIndex]="12000"
+      styleClass="min-w-[14rem] app-users-row-menu"
+    >
+      <ng-template pTemplate="item" let-item>
+        <span class="flex items-center gap-2">
+          @switch (item.id) {
+            @case ('edit') {
+              <ng-icon name="faSolidPen" size="0.875rem" class="shrink-0" aria-hidden="true" />
+            }
+            @case ('view') {
+              <ng-icon name="faSolidEye" size="0.875rem" class="shrink-0" aria-hidden="true" />
+            }
+          }
+          <span class="flex-1">{{ item.label }}</span>
+        </span>
+      </ng-template>
+    </p-menu>
 
     <p-dialog
       [(visible)]="showUserForm"
@@ -122,14 +170,16 @@ import { NgIcon } from '@ng-icons/core';
         </span>
       </ng-template>
       <ng-template pTemplate="content">
-        <div class="px-2 pb-2">
-          <app-user-form
-            [user]="selectedUser()"
-            [loading]="isSaving()"
-            (save)="handleSave($event)"
-            (cancel)="showUserForm = false"
-          />
-        </div>
+        @if (showUserForm) {
+          <div class="px-2 pb-2">
+            <app-user-form
+              [user]="selectedUser()"
+              [loading]="isSaving()"
+              (save)="handleSave($event)"
+              (cancel)="showUserForm = false"
+            />
+          </div>
+        }
       </ng-template>
     </p-dialog>
   `,
@@ -137,6 +187,10 @@ import { NgIcon } from '@ng-icons/core';
 })
 export class UsersListComponent {
   private usersService = inject(UsersService);
+  private router = inject(Router);
+  private translate = inject(TranslateService);
+
+  private rowMenu = viewChild<Menu>('rowMenu');
 
   users = toSignal(this.usersService.getAllUsers(), { initialValue: [] });
 
@@ -144,6 +198,7 @@ export class UsersListComponent {
   showUserForm = false;
   isNewUser = signal(false);
   isSaving = signal(false);
+  rowMenuModel = signal<MenuItem[]>([]);
 
   private readonly badgeBase =
     'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums';
@@ -178,6 +233,29 @@ export class UsersListComponent {
     this.selectedUser.set(user);
     this.isNewUser.set(false);
     this.showUserForm = true;
+  }
+
+  openRowMenu(event: Event, user: User): void {
+    event.stopPropagation();
+    this.rowMenuModel.set(this.buildRowMenuItems(user));
+    // Defer toggle so the menu reads the updated `model` after signal/CD refresh.
+    queueMicrotask(() => this.rowMenu()?.toggle(event));
+  }
+
+  private buildRowMenuItems(user: User): MenuItem[] {
+    const t = (key: string) => this.translate.instant(key);
+    return [
+      {
+        id: 'edit',
+        label: t('translate_actions-edit'),
+        command: () => this.onEditUser(user),
+      },
+      {
+        id: 'view',
+        label: t('translate_user-view-detail'),
+        command: () => void this.router.navigate(['/users', user.uid]),
+      },
+    ];
   }
 
   async handleSave(userData: Partial<User> & { password?: string }) {

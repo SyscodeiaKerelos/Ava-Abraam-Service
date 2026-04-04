@@ -1,4 +1,12 @@
-import { Component, ChangeDetectionStrategy, input, output, inject, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  inject,
+  computed,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -14,6 +22,7 @@ import {
 } from '@ng-icons/font-awesome/solid';
 import { User, UserRole } from '../../../shared/models/user.model';
 import { ZonesService } from '../../zones/services/zones.service';
+import { UsersService } from '../services/users.service';
 import { TranslateService } from '@ngx-translate/core';
 import { emailTakenValidator } from './email-taken.validator';
 import { InputText } from 'primeng/inputtext';
@@ -200,6 +209,7 @@ import { InputText } from 'primeng/inputtext';
 export class UserFormComponent {
   private fb = inject(FormBuilder);
   private zonesService = inject(ZonesService);
+  private usersService = inject(UsersService);
   private translate = inject(TranslateService);
 
   user = input<User | null>(null);
@@ -208,7 +218,8 @@ export class UserFormComponent {
   cancel = output<void>();
 
   zones = toSignal(this.zonesService.getAllZones(), { initialValue: [] });
-  isNewUser = signal(true);
+  /** Edit vs create — derived from input so it stays in sync (constructor cannot read `user()` reliably). */
+  isNewUser = computed(() => !this.user());
   userForm!: FormGroup;
 
   roleOptions: { label: string; value: UserRole; icon: string }[] = [
@@ -218,29 +229,61 @@ export class UserFormComponent {
   ];
 
   constructor() {
-    const userData = this.user();
-    const assignedZoneId = userData?.assignedZoneIds?.[0] || '';
-
-    this.isNewUser.set(!userData);
-
     this.userForm = this.fb.group({
-      displayName: [userData?.displayName || '', Validators.required],
-      email: [
-        userData?.email || '',
-        [Validators.required, Validators.email],
-        [emailTakenValidator(userData?.email)],
-      ],
-      phone: [userData?.phone || ''],
-      assignedZoneId: [assignedZoneId],
-      role: [userData?.role || 'viewer', Validators.required],
+      displayName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email], [emailTakenValidator(this.usersService)]],
+      phone: [''],
+      assignedZoneId: [''],
+      role: ['viewer', Validators.required],
     });
 
-    if (this.isNewUser()) {
-      this.userForm.addControl(
-        'password',
-        this.fb.control('', [Validators.required, Validators.minLength(6)]),
-      );
-    }
+    effect(() => {
+      const userData = this.user();
+      const emailCtrl = this.userForm.get('email');
+
+      if (userData) {
+        if (this.userForm.contains('password')) {
+          this.userForm.removeControl('password', { emitEvent: false });
+        }
+        emailCtrl?.clearAsyncValidators();
+        emailCtrl?.setAsyncValidators([emailTakenValidator(this.usersService, userData.email)]);
+        emailCtrl?.updateValueAndValidity({ emitEvent: false });
+
+        this.userForm.patchValue(
+          {
+            displayName: userData.displayName ?? '',
+            email: userData.email ?? '',
+            phone: userData.phone ?? '',
+            assignedZoneId: userData.assignedZoneIds?.[0] ?? '',
+            role: userData.role ?? 'viewer',
+          },
+          { emitEvent: false },
+        );
+      } else {
+        if (!this.userForm.contains('password')) {
+          this.userForm.addControl(
+            'password',
+            this.fb.control('', [Validators.required, Validators.minLength(6)]),
+          );
+        } else {
+          this.userForm.get('password')?.reset('', { emitEvent: false });
+        }
+        emailCtrl?.clearAsyncValidators();
+        emailCtrl?.setAsyncValidators([emailTakenValidator(this.usersService)]);
+        emailCtrl?.updateValueAndValidity({ emitEvent: false });
+
+        this.userForm.patchValue(
+          {
+            displayName: '',
+            email: '',
+            phone: '',
+            assignedZoneId: '',
+            role: 'viewer',
+          },
+          { emitEvent: false },
+        );
+      }
+    });
   }
 
   selectRole(role: UserRole): void {

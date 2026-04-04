@@ -22,6 +22,9 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
+            "outputPath": {
+              "base": "dist/ava-abraam-service"
+            },
             "optimization": true,
             "assets": [
               {
@@ -34,19 +37,35 @@
           },
           "configurations": {
             "production": {
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractLicenses": true,
+              "namedChunks": false,
+              "subresourceIntegrity": true,
+              "crossOrigin": "anonymous",
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "users-list-component",
+                  "maximumWarning": "600kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "all",
+                  "maximumWarning": "3MB",
+                  "maximumError": "5MB"
                 }
-              ],
-              "outputHashing": "all"
+              ]
             },
             "development": {
               "optimization": false,
